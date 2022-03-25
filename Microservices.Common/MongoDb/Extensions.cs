@@ -1,4 +1,5 @@
 ﻿using Microservices.Common;
+using Microservices.Common.Client;
 using Microservices.Common.Interfaces;
 using Microservices.Common.Settings;
 using Microsoft.Extensions.Configuration;
@@ -7,11 +8,21 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
+using System.Collections.Generic;
 
 namespace Microservices.Common.Extensions
 {
     public static class Extensions
     {
+        public static IServiceCollection AddCustomHttpClient(this IServiceCollection services,string baseUrl,IDictionary<string,string> headers=null)
+        {
+            services.AddSingleton<IHttpCustomClient>(httpCustomClient =>
+            {
+                return new HttpCustomClient(baseUrl, headers ?? null);
+            });
+            return services;
+        }
+
         public static IServiceCollection AddMongo(this IServiceCollection services)
         {
             //this serializes Guids and DateTimeOffset to strings into MongoDb
