@@ -6,7 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace Microservices.Common.Extensions
+namespace Microservices.Common.Repository
 {
     public class MongoRepository<T> : IRepository<T> where T : IEntity
     {

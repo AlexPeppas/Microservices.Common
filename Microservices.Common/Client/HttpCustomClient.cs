@@ -39,7 +39,7 @@ namespace Microservices.Common.Client
             }
         }
 
-        private void BuildQueries<T>(T request,string endpoint)
+        private string BuildQueries<T>(T request)
         {
             var properties = request.GetType().GetProperties();
             if (properties.Count() > 0)
@@ -57,19 +57,28 @@ namespace Microservices.Common.Client
                 }
 
                 string queryString = query.ToString();
-                _baseUrl += "/"+endpoint;
-                _baseUrl += $"?{queryString}";
+                return queryString;
             }
+            else
+                return string.Empty;
         }
 
         public async Task<List<R>> GetGenericAsync<T, R>(string endpoint,T request)
         {
+            string queryString = string.Empty;
+            
             if (request != null)
-                BuildQueries(request,endpoint);
+                queryString = BuildQueries(request);
+
+            string url = _baseUrl;
+            if (queryString != string.Empty)
+                url += $"/{endpoint}?{queryString}";
+            else
+                url += $"/{endpoint}";
 
             try
             {
-                using (HttpResponseMessage clientResponse = await HttpClient.GetAsync(_baseUrl))
+                using (HttpResponseMessage clientResponse = await HttpClient.GetAsync(url))
                 {
                     if (clientResponse.IsSuccessStatusCode)
                     {
@@ -90,10 +99,10 @@ namespace Microservices.Common.Client
 
         public async Task<List<R>> GetGenericAsync<R>(string endpoint)
         {
-            _baseUrl += "/" + endpoint;
+            string url = _baseUrl + $"/{endpoint}";
             try
             {
-                using (HttpResponseMessage clientResponse = await HttpClient.GetAsync(_baseUrl))
+                using (HttpResponseMessage clientResponse = await HttpClient.GetAsync(url))
                 {
                     if (clientResponse.IsSuccessStatusCode)
                     {
@@ -114,10 +123,10 @@ namespace Microservices.Common.Client
 
         public async Task<List<R>> PostGenericAsync<T, R>(T request,string endpoint)
         {
-            _baseUrl += "/" + endpoint;
+            string url = _baseUrl+$"/{endpoint}";
             try
             {
-                using (HttpResponseMessage clientResponse = await HttpClient.PostAsJsonAsync<object>(_baseUrl, request))
+                using (HttpResponseMessage clientResponse = await HttpClient.PostAsJsonAsync<object>(url, request))
                 {
                     if (clientResponse.IsSuccessStatusCode)
                     {
@@ -138,10 +147,10 @@ namespace Microservices.Common.Client
 
         public async Task<List<R>> PutGenericAsync<T, R>(T request,string endpoint)
         {
-            _baseUrl += "/" + endpoint;
+            string url = _baseUrl + $"/{endpoint}";
             try
             {
-                using (HttpResponseMessage clientResponse = await HttpClient.PutAsJsonAsync<object>(_baseUrl, request))
+                using (HttpResponseMessage clientResponse = await HttpClient.PutAsJsonAsync<object>(url, request))
                 {
                     if (clientResponse.IsSuccessStatusCode)
                     {

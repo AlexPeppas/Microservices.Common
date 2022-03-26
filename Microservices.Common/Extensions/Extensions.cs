@@ -1,6 +1,7 @@
 ﻿using Microservices.Common;
 using Microservices.Common.Client;
 using Microservices.Common.Interfaces;
+using Microservices.Common.Repository;
 using Microservices.Common.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +9,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
+using Polly;
 using System.Collections.Generic;
 
 namespace Microservices.Common.Extensions
@@ -18,8 +20,15 @@ namespace Microservices.Common.Extensions
         {
             services.AddSingleton<IHttpCustomClient>(httpCustomClient =>
             {
-                return new HttpCustomClient(baseUrl, headers ?? null);
+                return  new HttpCustomClient(baseUrl, headers ?? null);   
             });
+            
+            services.AddHttpClient
+            /*ervices.AddHttpClient<IHttpCustomClient, HttpCustomClient>(client =>
+            {
+                client.BaseAddress = new System.Uri(baseUrl);
+            }).AddPolicyHandler(Policy.TimeoutAsync<System.Net.Http.HttpResponseMessage>(1));*/
+
             return services;
         }
 
