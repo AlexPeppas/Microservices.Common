@@ -42,7 +42,7 @@ namespace Microservices.Common.Extensions
                     }
                 }
             })
-            //AddTransientHttpErrorPolicy receives a builder which uses Or<> to handle timeout exception and wait and retry on the following logic
+            //AddTransientHttpErrorPolicy for WantAndRetry policy, receives a builder which uses Or<> to handle timeout exception and wait and retry on the following logic
             //first input is the retries count
             //second is the retryAttempt which dictates the expo backoff time to wait between each retry.
             //third is an Action delegate onRetry which gets an instance of buildServiceProvider so we can leverage getService from provider and get ILogger interface
@@ -58,7 +58,31 @@ namespace Microservices.Common.Extensions
                     ?.LogWarning($"Delaying for {timeSpan.TotalSeconds} seconds, then making retry {retryAttempt}");
                 }
             ))
-            //AddPolicyHandler dictates the client to throw TimeoutRejectedException on specified input timeoutPolicy param.
+            //AddTransientHttpErrorPolicy for CircuitBreaker policy, similarly wraps the timeoutRejectedException so put it before its use.
+            //first property is the number of retries that are allowed
+            //second property holds the amount of time that the circuit is going to remain open and break every incoming call
+            //on break and on reset Actions for those two different states are logging so we can know when the circuit has opened
+            //and when it successfuly closed again so we can retry its usage.
+            //DO NOT LOG IN THIS WAY IN PRODUCTION
+            .AddTransientHttpErrorPolicy(builder => builder.Or<TimeoutRejectedException>().CircuitBreakerAsync(
+                3, //number of retries before opening the circuit
+                TimeSpan.FromSeconds(15), //how long is the circuit going to be open
+
+                onBreak: (outcome, timeSpan) =>
+                {
+                    var serviceProvider = services.BuildServiceProvider();
+                    serviceProvider.GetService<ILogger<HttpCustomClient>>()
+                    ?.LogWarning($"Opening Circuit for {timeSpan.TotalSeconds} seconds to avoid resource exhaustion.");
+                },
+
+                onReset: () =>
+                {
+                    var serviceProvider = services.BuildServiceProvider();
+                    serviceProvider.GetService<ILogger<HttpCustomClient>>()
+                    ?.LogWarning($"Closing again the circuit.");
+                }
+            ))
+            //AddPolicyHandler for Timeout Policy, dictates the client to throw TimeoutRejectedException on specified input timeoutPolicy param.
             .AddPolicyHandler(Policy.TimeoutAsync<HttpResponseMessage>(clientParams.timeoutPolicy));
 
             return services;

@@ -5,7 +5,7 @@
     <Authors>Alexandros Peppas</Authors>
     <Company />
     <Description>General common methods and extensions to be shared by microservices</Description>
-    <Version>1.0.9</Version>
+    <Version>1.0.10</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
