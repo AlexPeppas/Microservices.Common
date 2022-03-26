@@ -23,7 +23,7 @@ namespace Microservices.Common.Extensions
                 return  new HttpCustomClient(baseUrl, headers ?? null);   
             });
             
-            services.AddHttpClient
+            
             /*ervices.AddHttpClient<IHttpCustomClient, HttpCustomClient>(client =>
             {
                 client.BaseAddress = new System.Uri(baseUrl);
