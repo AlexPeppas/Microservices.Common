@@ -11,6 +11,7 @@ using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using Polly;
 using System.Collections.Generic;
+using System.Net.Http;
 
 namespace Microservices.Common.Extensions
 {
@@ -18,16 +19,17 @@ namespace Microservices.Common.Extensions
     {
         public static IServiceCollection AddCustomHttpClient(this IServiceCollection services,string baseUrl,IDictionary<string,string> headers=null)
         {
-            services.AddSingleton<IHttpCustomClient>(httpCustomClient =>
+            /*services.AddSingleton<IHttpCustomClient>(httpCustomClient =>
             {
                 return  new HttpCustomClient(baseUrl, headers ?? null);   
-            });
+            });*/
             
-            
-            /*ervices.AddHttpClient<IHttpCustomClient, HttpCustomClient>(client =>
+            //AddHttpClient binds the Interface with the Method and set the baseAddress of the client
+            //in linq. AddPolicyHandler dictates the user the seconds to timeout
+            services.AddHttpClient<IHttpCustomClient, HttpCustomClient>(client =>
             {
                 client.BaseAddress = new System.Uri(baseUrl);
-            }).AddPolicyHandler(Policy.TimeoutAsync<System.Net.Http.HttpResponseMessage>(1));*/
+            }).AddPolicyHandler(Policy.TimeoutAsync<HttpResponseMessage>(1));
 
             return services;
         }

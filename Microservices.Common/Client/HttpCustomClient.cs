@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 
 
@@ -13,19 +14,17 @@ namespace Microservices.Common.Client
     {
         private static HttpClient HttpClient { get; set; }
 
-        private static string _baseUrl;
         private static IDictionary<string, string> _headers;
 
-        public HttpCustomClient(string BaseUrl, IDictionary<string, string> Headers=null)
+        public HttpCustomClient(HttpClient httpClient, IDictionary<string, string> Headers=null)
         {
-            _baseUrl = BaseUrl;
+            HttpClient = httpClient;
             _headers = Headers;
             InitializeClient();
         }
 
         private void InitializeClient()
         {
-            HttpClient = new HttpClient();
             HttpClient.DefaultRequestHeaders.Accept.Clear();
             HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             HttpClient.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json; charset=utf-8");
@@ -70,11 +69,9 @@ namespace Microservices.Common.Client
             if (request != null)
                 queryString = BuildQueries(request);
 
-            string url = _baseUrl;
+            string url = $"/{endpoint}";
             if (queryString != string.Empty)
-                url += $"/{endpoint}?{queryString}";
-            else
-                url += $"/{endpoint}";
+                url +=$"?{queryString}";
 
             try
             {
@@ -99,7 +96,7 @@ namespace Microservices.Common.Client
 
         public async Task<List<R>> GetGenericAsync<R>(string endpoint)
         {
-            string url = _baseUrl + $"/{endpoint}";
+            string url =$"/{endpoint}";
             try
             {
                 using (HttpResponseMessage clientResponse = await HttpClient.GetAsync(url))
@@ -123,7 +120,7 @@ namespace Microservices.Common.Client
 
         public async Task<List<R>> PostGenericAsync<T, R>(T request,string endpoint)
         {
-            string url = _baseUrl+$"/{endpoint}";
+            string url = $"/{endpoint}";
             try
             {
                 using (HttpResponseMessage clientResponse = await HttpClient.PostAsJsonAsync<object>(url, request))
@@ -147,7 +144,7 @@ namespace Microservices.Common.Client
 
         public async Task<List<R>> PutGenericAsync<T, R>(T request,string endpoint)
         {
-            string url = _baseUrl + $"/{endpoint}";
+            string url = $"/{endpoint}";
             try
             {
                 using (HttpResponseMessage clientResponse = await HttpClient.PutAsJsonAsync<object>(url, request))
