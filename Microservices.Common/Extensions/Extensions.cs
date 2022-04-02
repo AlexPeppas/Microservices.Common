@@ -146,7 +146,14 @@ namespace Microservices.Common.Extensions
 
                     configurator.Host(mongoDbSettings.Host); //Configure RabbitMQ Host
                     configurator.ConfigureEndpoints(context, new KebabCaseEndpointNameFormatter(false)); //Configure RabbitMQ Endpoints
+
+                    //add retry on RabbitMQ policy so if you try to consume a message and it fails, wait for 5 second and retry for 3 times.
+                    configurator.UseMessageRetry(config =>
+                    {
+                        config.Interval(3, TimeSpan.FromSeconds(5));//make this generic
+                    });
                 });
+
             });
 
             return services;

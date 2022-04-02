@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microservices.Common.Settings
 {
+    
     public class RabbitMQSettings
     {
         public string Host { get; init; }
