@@ -1,4 +1,5 @@
-﻿using Microservices.Common;
+﻿using MassTransit;
+using Microservices.Common;
 using Microservices.Common.Client;
 using Microservices.Common.Interfaces;
 using Microservices.Common.Repository;
@@ -16,6 +17,7 @@ using Polly.Timeout;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Reflection;
 
 namespace Microservices.Common.Extensions
 {
@@ -122,6 +124,29 @@ namespace Microservices.Common.Extensions
                 //Construct MongoRepository with database(IMongoDatabase) and collectionName "Items")
                 //and map it with IRepository Interface
                 return new MongoRepository<T>(database, collectionName);
+            });
+
+            return services;
+        }
+
+        public static IServiceCollection AddMassTransitRabbitMQ (this IServiceCollection services)
+        {
+            //Add MassTransit to communicate with rabbitMQ from your API
+            services.AddMassTransit(configure =>
+            {
+                //Add consumers so this extension will be available for both consumers/publishers
+                configure.AddConsumers(Assembly.GetEntryAssembly());
+
+                //use RabbitMQ
+                configure.UsingRabbitMq((context, configurator) =>
+                {
+                    //Context is used as a serviceProvider
+                    var configuration = context.GetService<IConfiguration>(); //getConfiguration Instance
+                    var mongoDbSettings = configuration.GetSection(nameof(RabbitMQSettings)).Get<RabbitMQSettings>(); //Fetch section
+
+                    configurator.Host(mongoDbSettings.Host); //Configure RabbitMQ Host
+                    configurator.ConfigureEndpoints(context, new KebabCaseEndpointNameFormatter(false)); //Configure RabbitMQ Endpoints
+                });
             });
 
             return services;
